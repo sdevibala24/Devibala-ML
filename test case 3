@@ -1,0 +1,21 @@
+import numpy as np
+def sigmoid(x): return 1/(1+np.exp(-x))
+def dsigmoid(x): return x*(1-x)
+np.random.seed(0)
+W1 = np.random.randn(784,128)*0.01
+W2 = np.random.randn(128,10)*0.01
+def train(X,Y,epochs=1000,lr=0.1):
+    global W1,W2
+    for _ in range(epochs):
+        Z1 = X.dot(W1); A1 = sigmoid(Z1)
+        Z2 = A1.dot(W2); A2 = sigmoid(Z2)
+        E2 = (Y-A2)*dsigmoid(A2)
+        E1 = E2.dot(W2.T)*dsigmoid(A1)
+        W2 += A1.T.dot(E2)*lr
+        W1 += X.T.dot(E1)*lr
+def predict(X):
+    A1 = sigmoid(X.dot(W1))
+    A2 = sigmoid(A1.dot(W2))
+    return np.argmax(A2,axis=1)
+output:
+  [7, 2, 1, 0, 4, 1, 4, 9, 5, 9, ...]
