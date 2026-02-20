@@ -1,0 +1,23 @@
+def candidate_elimination(data, attrs):
+    S, G = data[0][0].copy(), [['?' for _ in data[0][0]]]
+    for x, y in data:
+        if y == 'Yes':  
+            S = [s if s == xi else '?' for s, xi in zip(S, x)]
+            G = [g for g in G if all(g[i] == '?' or g[i] == x[i] for i in range(len(g)))]
+        else:  
+            G = [g.copy()[:i] + [val] + g[i+1:]
+                 for g in G for i in range(len(g)) if g[i] == '?'
+                 for val in attrs[i] if val != x[i]]
+    return S, G
+
+attributes = [['High','Normal'], ['Yes','No'], ['Yes','No']]
+training_data = [
+    (['High','Yes','Yes'],'Yes'),
+    (['High','No','Yes'],'Yes'),
+    (['Normal','Yes','No'],'No'),
+    (['Normal','No','No'],'No')
+]
+
+S, G = candidate_elimination(training_data, attributes)
+print("Final Specific Hypothesis (S):", S)
+print("Final General Hypotheses (G):", G)
