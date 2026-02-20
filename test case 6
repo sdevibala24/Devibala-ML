@@ -1,0 +1,33 @@
+import pandas as pd
+import numpy as np
+from pgmpy.models import DiscreteBayesianNetwork
+from pgmpy.estimators import MaximumLikelihoodEstimator
+from pgmpy.inference import VariableElimination
+
+# Step 1: Define the structure of the Bayesian Network
+model = DiscreteBayesianNetwork([
+    ('StudyHours', 'Pass'),
+    ('Attendance', 'Pass')
+])
+
+# Step 2: Create a synthetic dataset
+data_dict = {
+    'StudyHours': np.random.choice(['Low', 'High'], 100, p=[0.4, 0.6]),
+    'Attendance': np.random.choice(['Low', 'High'], 100, p=[0.3, 0.7]),
+    'Pass': np.random.choice(['No', 'Yes'], 100, p=[0.4, 0.6])
+}
+
+df = pd.DataFrame(data_dict)
+
+# Step 3: Train the Bayesian Network
+model.fit(df, estimator=MaximumLikelihoodEstimator)
+
+# Step 4: Perform inference
+inference = VariableElimination(model)
+
+# Step 5: Query the model
+evidence = {'StudyHours': 'High', 'Attendance': 'High'}
+result = inference.map_query(variables=['Pass'], evidence=evidence)
+
+print("\nPrediction for Student Outcome:")
+print(f"Pass: {result['Pass']}")
