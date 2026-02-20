@@ -1,0 +1,34 @@
+import numpy as np
+class GaussianNB:
+    def fit(self, X, y):
+        self.classes = np.unique(y)
+        self.mean = {c: X[y==c].mean(axis=0) for c in self.classes}
+        self.var  = {c: X[y==c].var(axis=0)+1e-6 for c in self.classes}
+        self.prior= {c: (y==c).mean() for c in self.classes}
+    def _pdf(self, c, x):
+        mean, var = self.mean[c], self.var[c]
+        return np.exp(-(x-mean)**2/(2*var)) / np.sqrt(2*np.pi*var)
+    def predict(self, X):
+        preds=[]
+        for x in X:
+            scores=[np.log(self.prior[c])+np.sum(np.log(self._pdf(c,x))) for c in self.classes]
+            preds.append(self.classes[np.argmax(scores)])
+        return np.array(preds)
+X = np.array([
+    [1,1,0],  # "You win free prize" -> spam
+    [0,1,1],  # "Win special offer" -> spam
+    [0,0,0],  # "Meeting tomorrow" -> not spam
+    [0,0,1],  # "Limited time offer" -> spam
+    [0,0,0],  # "Project update" -> not spam
+])
+y = np.array(["yes","yes","no","yes","no"])  # labels
+gnb = GaussianNB()
+gnb.fit(X,y)
+test = np.array([
+    [1,0,0],  # contains "free"
+    [0,0,0],  # no spam words
+    [0,1,1],  # contains "win" and "offer"
+])
+print(gnb.predict(test))
+output:
+     ['yes' 'no' 'yes']
