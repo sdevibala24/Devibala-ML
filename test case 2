@@ -1,0 +1,41 @@
+import math
+
+def entropy(data):
+    labels = [row[-1] for row in data]
+    return sum(-labels.count(c)/len(labels)*math.log2(labels.count(c)/len(labels)) for c in set(labels))
+def best_attr(data, attrs):
+    base = entropy(data)
+    gains = []
+    for i, values in enumerate(attrs):
+        new_ent = sum(len([r for r in data if r[i]==v])/len(data)*entropy([r for r in data if r[i]==v]) for v in values if [r for r in data if r[i]==v])
+        gains.append(base - new_ent)
+    return gains.index(max(gains))
+def id3(data, attrs, names):
+    labels = [r[-1] for r in data]
+    if labels.count(labels[0]) == len(labels): return labels[0]
+    if not attrs: return max(set(labels), key=labels.count)
+    best = best_attr(data, attrs)
+    tree = {names[best]: {}}
+    for v in attrs[best]:
+        subset = [r for r in data if r[best]==v]
+        if not subset: tree[names[best]][v] = max(set(labels), key=labels.count)
+        else:
+            new_attrs = attrs[:best]+attrs[best+1:]
+            new_names = names[:best]+names[best+1:]
+            tree[names[best]][v] = id3([r[:best]+r[best+1:] for r in subset], new_attrs, new_names)
+    return tree
+def predict(tree, names, sample):
+    if isinstance(tree,str): return tree
+    attr = list(tree.keys())[0]
+    return predict(tree[attr][sample[names.index(attr)]], names, sample)
+attrs = [['Yes','No'],['High','Normal'],['Yes','No'],['Child','Adult','Senior']]
+names = ['Cough','Fever','Fatigue','Age']
+data = [
+    ['Yes','High','Yes','Adult','Yes'],
+    ['No','High','Yes','Senior','Yes'],
+    ['Yes','Normal','No','Child','No'],
+    ['No','Normal','No','Adult','No']
+]
+tree = id3(data, attrs, names)
+print("Tree:", tree)
+print("Prediction:", predict(tree, names, ['Yes','High','Yes','Senior']))
